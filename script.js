@@ -181,6 +181,7 @@ slider.onchange = function(){
     imgUrl += "volume-level-3.svg";
   }
 
+  // that's weird why didn't the deployment update
   volumeImage.src = imgUrl;
 }
 

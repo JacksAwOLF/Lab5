@@ -141,7 +141,7 @@ function populateVoice(){
 }
 
 // apparantly we need to give to browser some time to load all the options first
-setTimeout(populateVoice, 100);
+setTimeout(populateVoice, 50);
 
 
 

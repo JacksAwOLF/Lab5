@@ -1,16 +1,190 @@
 // script.js
 
-const img = new Image(); // used to load image from <input> and draw to canvas
+
+// used to load image from <input> and draw to canvas
+const img = new Image(); 
+
+// the canvas HTML object to draw everything in
+const canvas = document.getElementById("user-image");
+const context = canvas.getContext('2d');
+
+// the buttons that we need 
+const buttonGen = document.querySelector("button");
+const buttonsBottom = document.querySelectorAll("#button-group button")
+const buttonClear = buttonsBottom[0];
+const buttonRead = buttonsBottom[1];
+
+let textTopEle = document.getElementById("text-top");
+let textBotEle = document.getElementById("text-bottom");
+
+
+let slider = document.querySelector("#volume-group input");
+let volumeImage = document.querySelector("#volume-group img"); 
 
 // Fires whenever the img object loads a new image (such as with img.src =)
 img.addEventListener('load', () => {
-  // TODO
+  
+  // fill the canvas with black background
+  context.fillStyle = 'black';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  // draw the new image
+  let imgDims = getDimmensions(
+    canvas.width, canvas.height, 
+    img.width, img.height
+  );
+
+  context.drawImage(img, 
+    imgDims['startX'], imgDims['startY'], 
+    imgDims['width'], imgDims['height']
+  );
+
 
   // Some helpful tips:
   // - Fill the whole Canvas with black first to add borders on non-square images, then draw on top
   // - Clear the form when a new image is selected
   // - If you draw the image to canvas here, it will update as soon as a new image is selected
 });
+
+
+// this even triggers whenever the image-file-input selects a new image
+let imageInput = document.getElementById("image-input");
+imageInput.addEventListener("change", (event) => {
+
+  let file = imageInput.files[0];
+
+  console.log("filename: "+file.name);
+
+  // create a FileReader to read the data from user's computer
+  let reader = new FileReader();
+
+  // onload, sets the source of the image object we created above
+  reader.onload = function(e){
+    img.src = e.target.result;
+    img.alt = file['name'];
+  }
+
+  // load the file that was selected by this input
+  reader.readAsDataURL(file);
+});
+
+
+document.getElementById("generate-meme").onsubmit = function(){
+
+  // get the text (string) that the user input
+  let textTop = textTopEle.value;
+  let textBot = textBotEle.value;
+  if (textTop + textBot == "") 
+    return false;
+
+  // draw text on the context of the canvas
+  let txtMarginTop = 30;  // how much from the top is the top text
+  let txtMarginBot = 11;  // how much from the bottom is the lower text
+  // align in center, and make the text big
+  context.textAlign = 'center';
+  context.font = '2em sans-serif';
+  // white insides
+  context.fillStyle = 'white';
+  context.fillText(textTop, canvas.width/2, txtMarginTop);
+  context.fillText(textBot, canvas.width/2, canvas.height - txtMarginBot);
+  // blackoutline
+  context.strokeStyle = 'black';
+  context.strokeText(textTop, canvas.width/2, txtMarginTop);
+  context.strokeText(textBot, canvas.width/2, canvas.height - txtMarginBot);
+
+  toggleButtons();
+
+  // so the page doesn't reload
+  return false;
+};
+
+
+// toggle the state of all three buttons at the bottom
+function toggleButtons(){
+  buttonGen.disabled = !buttonGen.disabled;
+  buttonClear.disabled = !buttonClear.disabled;
+  buttonRead.disabled = !buttonRead.disabled;
+}
+
+// clear everything on the canvas
+buttonClear.onclick = function(){
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  toggleButtons();
+}
+
+// common variables for speech
+let synth = window.speechSynthesis;
+let voiceSelect = document.getElementById("voice-selection");
+let voices;
+
+// load up all the speech options on this browser  
+function populateVoice(){
+
+  voices = synth.getVoices();
+
+  // remove the option that says no voice selected...
+  voiceSelect.children[0].remove();
+  // also make sure it's not disabled
+  voiceSelect.disabled = false;
+
+  // loop and add optionss
+  for (let i=0; i<voices.length; i++){    
+    let option  = document.createElement('option');
+    option.textContent = voices[i].name + ' (' + voices[i].lang + ')';
+    if(voices[i].default) 
+      option.textContent += ' -- DEFAULT';
+    option.setAttribute('data-name', voices[i].name);
+    voiceSelect.appendChild(option);
+  }
+
+}
+
+// apparantly we need to give to browser some time to load all the options first
+setTimeout(populateVoice, 100);
+
+
+
+buttonRead.onclick = function(){
+
+  // get the text in the box
+  let textTop = textTopEle.value;
+  let textBot = textBotEle.value;
+  if (textTop + textBot == "") 
+    return false;
+
+  // make utterance  
+  let utterance = new SpeechSynthesisUtterance(textTop + "\n" + textBot);
+
+  // find the correct utterance...
+  for (let i=0; i<voices.length; i++)
+    if (voices[i].name == voiceSelect.selectedOptions[0].getAttribute('data-name'))
+      utterance.voice = voices[i];
+  
+  utterance.volume = (slider.value)/100;
+  window.speechSynthesis.speak(utterance);
+}
+
+
+
+// change the image of the volume icon when the slider changed values
+slider.onchange = function(){
+
+  let imgUrl = "icons/";
+  if (slider.value == 0){
+    imgUrl += "volume-level-0.svg";
+  } else if (slider.value <= 33){
+    imgUrl += "volume-level-1.svg";
+  } else if (slider.value <= 66){
+    imgUrl += "volume-level-1.svg";
+  } else {
+    imgUrl += "volume-level-3.svg";
+  }
+
+  volumeImage.src = imgUrl;
+}
+
+
+
 
 /**
  * Takes in the dimensions of the canvas and the new image, then calculates the new

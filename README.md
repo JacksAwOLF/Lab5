@@ -6,6 +6,7 @@
 ## Part 1:
 
 
+
 ## Part 2:
 
-LINK TO YOUR PART 2 REPOSITORY
+https://github.com/JacksAwOLF/github-actions-for-ci

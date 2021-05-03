@@ -53,8 +53,6 @@ imageInput.addEventListener("change", (event) => {
 
   let file = imageInput.files[0];
 
-  console.log("filename: "+file.name);
-
   // create a FileReader to read the data from user's computer
   let reader = new FileReader();
 
@@ -110,6 +108,9 @@ function toggleButtons(){
 buttonClear.onclick = function(){
   context.clearRect(0, 0, canvas.width, canvas.height);
   toggleButtons();
+  textTopEle.value = "";
+  textBotEle.value = "";
+  imageInput.value = null;
 }
 
 // common variables for speech
@@ -175,7 +176,7 @@ slider.onchange = function(){
   } else if (slider.value <= 33){
     imgUrl += "volume-level-1.svg";
   } else if (slider.value <= 66){
-    imgUrl += "volume-level-1.svg";
+    imgUrl += "volume-level-2.svg";
   } else {
     imgUrl += "volume-level-3.svg";
   }
